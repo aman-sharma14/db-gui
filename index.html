@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+        
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Modify DB</h1>
+
+    
+
+    <div id="options">
+
+        <button id="insert">Insert</button>
+        <button id="update">Update</button>
+        
+        <button id="delete">Delete</button>
+        <button id="display">Display</button>
+
+    </div>
+
+    
+
+    <div id="main">
+
+        <div id="formContainer">
+
+       
+
+        </div> 
+    
+        <table border="1" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Roll No.</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Date of Birth</th>
+                    <th>Course</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+
+    </div>
+
+    <script>
+        $(document).ready(function(){
+
+            display();
+           
+
+            function display() {
+                $.ajax({
+                    url: 'display.php',
+                    method: 'GET',
+                    success: function(data) {
+                        $('table tbody').html(data);
+                    }
+                });
+            }
+            
+            $('#display').on('click',function(){
+                $.ajax({
+                    url: 'display.php',
+                    method: 'GET',
+                    success: function(data) {
+                        $('#formContainer').hide();
+                        $('table tbody').html(data);
+                    }
+                });
+            })
+
+            $('#insert').on('click',function(){
+                let html = `<form id="insertForm" action="" method="post">
+                                <div>
+                                    <label for="name">Name: </label>
+                                    <input type="text" id="name" name="name">
+                                </div>
+                                <br>
+                                <div>
+                                    <label for="mail">Email: </label>
+                                    <input type="email" id="mail" name="mail">
+                                </div>
+                                <br>
+                                <div>
+                                    <label for="dob">DOB: </label>
+                                    <input type="date" id="dob" name="dob">
+                                </div>
+                                <br>
+                                <div>
+                                    <label for="course">Course: </label>
+                                    <input type="text" id="course" name="course">
+                                </div>
+                                
+                                <div>
+                                    <input type="submit">
+                                </div>
+                                
+                            </form> `;
+                    $('#formContainer').html(html);
+                
+            })
+
+            $(document).on('submit', '#insertForm', function(e) {
+                e.preventDefault();
+                let data = $(this).serialize();
+                $.ajax({
+                    url: 'insert.php',
+                    method: 'POST',
+                    data: data,
+                    success: function(data) {
+                        alert('Record inserted successfully!');
+                        display();  
+                    }
+                });
+            });
+
+
+            //---------------------------------------------------------Update--------------------------------------------------
+
+            $('#update').on('click',function(){
+                let html = `<form id="updateForm" action="" method="post">
+                                <div>
+                                    <label for="rno">Roll No. to be updated </label>
+                                    <input type="number" id="rno" name="rno">
+                                </div>
+                                <br>
+                                <div>
+                                    <label for="field">Field to be updated</label>
+                                    <select name="field" id="field">
+                                        <option value="name">Name</option>
+                                        <option value="email">Email</option>
+                                        <option value="dob">Date of Birth</option>
+                                        <option value="course">course</option>
+                                    </select>
+
+                                    
+                                    
+                                </div>
+                                <br>
+                                
+                                <div id="updiv">
+                                
+                                </div>
+                                
+                            </form>`;
+
+                    $('#formContainer').html(html);
+
+                
+            })
+
+            $(document).on('change','#field',function(e){
+                e.preventDefault();
+                let field = $('#field').val();
+                
+
+                let type = field == "dob" ? "date" : "text"; 
+
+                $('#updiv').html(
+                    `   <div>
+                        <label for=${field}> ${field.charAt(0).toUpperCase()+field.slice(1,)}</label>
+                        <input type=${type} id="${field}" name="${field}">
+                        </div>
+
+                         <input type="submit" value="Update">
+                    `
+                )
+            })
+
+            $(document).on('submit', '#updateForm', function(e) {
+                e.preventDefault();
+                let data = $(this).serialize();
+                $.ajax({
+                    url: 'update.php',
+                    method: 'POST',
+                    data: data,
+                    success: function(data) {
+                        alert('Record updated successfully!');
+                        display();  
+                    }
+                });
+            });
+
+            //-----------------------------------------------Delete--------------------------------------------------------
+
+           
+
+            $('#delete').on('click', function() {
+                let html = `<form id="deleteForm" action="" method="post">
+                                <p>Choose an option to delete:</p>
+                                <label >
+                                     <p>Delete All Records</p> <input type="radio" name="deleteOption" value="all" checked>
+                                    
+                                </label><br>
+                                <label>
+                                    <p>Delete a Specific Record</p> <input type="radio" name="deleteOption" value="one">
+                                    
+                                </label><br>
+                                <div id="rollnoContainer" style="display:none;">
+                                    <label for="rollno">Enter Roll No:</label>
+                                    <input type="number" id="rollno" name="rollno">
+                                </div>
+                                <input type="submit" value="Delete">
+                            </form>`;
+
+                $('#formContainer').html(html); 
+            });
+
+            
+            $(document).on('change', 'input[name="deleteOption"]', function() {
+                if ($(this).val() === 'one') {
+                    $('#rollnoContainer').show();
+                } else {
+                    $('#rollnoContainer').hide();
+                }
+            });
+
+            
+            $(document).on('submit', '#deleteForm', function(e) {
+                e.preventDefault();
+                let data = $(this).serialize();
+
+                $.ajax({
+                    url: 'delete.php', 
+                    method: 'POST',
+                    data: data,
+                    success: function(response) {
+                        alert("disp"); 
+                        display(); 
+                    }
+                });
+            });
+
+
+        })
+    </script>
+</body>
+</html>
